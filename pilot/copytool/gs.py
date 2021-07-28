@@ -12,6 +12,7 @@ import os
 import logging
 from pilot.info import infosys
 import subprocess
+import re
 
 try:
     from google.cloud import storage
@@ -149,7 +150,6 @@ def copy_out(files, **kwargs):
 
     if len(files) > 0:
         fspec = files[0]
-        import re
         # bucket = re.sub(r'gs://(.*?)/.*', r'\1', fspec.turl)
         reobj = re.match(r'gs://([^/]*)/(.*)', fspec.turl)
         (bucket, remote_path) = reobj.groups()
@@ -225,6 +225,8 @@ def upload_file(file_name, bucket, object_name=None, content_type=None):
     try:
         client = storage.Client()
         gs_bucket = client.get_bucket(bucket)
+        # remove any leading slash(es) in object_name
+        object_name = object_name.lstrip('/')
         logger.info('uploading a file to bucket=%s in full path=%s in content_type=%s', bucket, object_name, content_type)
         blob = gs_bucket.blob(object_name)
         blob.upload_from_filename(filename=file_name, content_type=content_type)
